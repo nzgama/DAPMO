@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase';
-import HomeScreen from '../screens/HomeScreen';
-import LoginScreen from '../screens/LoginScreen';
-import RegisterScreen from '../screens/RegisterScreen';
+import { auth } from '../firebase/firebase';
 
-const Stack = createNativeStackNavigator();
+import AppStack from './AppStack';
+import AuthStack from './AuthStack';
 
 export default function AppNavigator() {
     // Guardamos el usuario actual para decidir qué pantallas mostrar.
@@ -37,18 +34,9 @@ export default function AppNavigator() {
 
     return (
         <NavigationContainer>
-            {/* Un usuario autenticado puede entrar a Inicio. */}
-            {user ? (
-                <Stack.Navigator screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="Inicio" component={HomeScreen} />
-                </Stack.Navigator>
-            ) : (
-                /* Sin sesión, el usuario puede iniciar sesión o registrarse. */
-                <Stack.Navigator screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="Login" component={LoginScreen} />
-                    <Stack.Screen name="Registro" component={RegisterScreen} />
-                </Stack.Navigator>
-            )}
+            {/* NavigationContainer mantiene el estado de las rutas y habilita navigation.navigate. */}
+            {/* Un usuario autenticado puede entrar a AppStack. */}
+            {user ? <AppStack /> : <AuthStack />}
         </NavigationContainer>
     );
 }

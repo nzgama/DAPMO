@@ -1,8 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth } from '../firebase/firebase';
+import { logout } from '../services/authService';
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <View style={styles.successMark}><Text style={styles.successMarkText}>✓</Text></View>
@@ -14,8 +14,12 @@ export default function HomeScreen() {
                 <Text style={styles.email}>{auth.currentUser?.email}</Text>
             </View>
             <Text style={styles.note}>Esta pantalla solo aparece cuando Firebase detecta un usuario autenticado.</Text>
+            {/* La ruta Profile está declarada en AppStack. */}
+            <Pressable style={styles.profileButton} onPress={() => navigation.navigate('Profile')}>
+                <Text style={styles.profileButtonText}>Ver perfil</Text>
+            </Pressable>
             {/* Al cerrar sesión, AppNavigator volverá a mostrar Login. */}
-            <Pressable style={styles.button} onPress={() => signOut(auth)}>
+            <Pressable style={styles.button} onPress={logout}>
                 <Text style={styles.buttonText}>Cerrar sesión</Text>
             </Pressable>
         </View>
@@ -32,6 +36,8 @@ const styles = StyleSheet.create({
     infoLabel: { color: '#64748b', fontSize: 13, marginBottom: 6 },
     email: { color: '#0f172a', fontSize: 16, fontWeight: '700' },
     note: { color: '#64748b', fontSize: 13, lineHeight: 19, marginTop: 20, textAlign: 'center' },
+    profileButton: { alignItems: 'center', backgroundColor: '#2563eb', borderRadius: 7, marginTop: 24, paddingHorizontal: 28, paddingVertical: 14 },
+    profileButtonText: { color: '#fff', fontWeight: '800' },
     button: { borderColor: '#2563eb', borderRadius: 7, borderWidth: 1, marginTop: 28, paddingHorizontal: 28, paddingVertical: 14 },
     buttonText: { color: '#2563eb', fontWeight: '800' },
 });

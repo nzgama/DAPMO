@@ -50,7 +50,7 @@ La aplicación utiliza Firebase Authentication con el proveedor de correo y cont
 5. Activa **Email/Password**.
 6. Guarda los cambios.
 
-La configuración de Firebase se encuentra en [firebase.js](firebase.js). Si utilizas otro proyecto de Firebase, reemplaza los valores de `firebaseConfig` por los de tu aplicación web.
+La configuración de Firebase se encuentra en [src/firebase/firebase.js](src/firebase/firebase.js). Si utilizas otro proyecto de Firebase, reemplaza los valores de `firebaseConfig` por los de tu aplicación web.
 
 > Las claves de configuración web de Firebase no sustituyen las reglas de seguridad del proyecto. No coloques contraseñas, tokens privados o claves de servidor en la aplicación.
 
@@ -85,7 +85,7 @@ npx expo start --tunnel
 
 ## Flujo de la aplicación
 
-1. `App.js` carga `AppNavigator`.
+1. `App.js` carga `src/navigation/AppNavigator`.
 2. `AppNavigator` escucha los cambios de sesión con `onAuthStateChanged`.
 3. Sin usuario autenticado se muestran `LoginScreen` y `RegisterScreen`.
 4. Después de iniciar sesión o registrarse, Firebase actualiza la sesión.
@@ -97,14 +97,13 @@ npx expo start --tunnel
 ```text
 ExpoAppUsers/
 ├── App.js
-├── firebase.js
 ├── index.js
-├── navigation/
-│   └── AppNavigator.js
-├── screens/
-│   ├── HomeScreen.js
-│   ├── LoginScreen.js
-│   └── RegisterScreen.js
+├── src/
+│   ├── firebase/
+│   │   └── firebase.js
+│   ├── navigation/
+│   ├── screens/
+│   └── services/
 ├── assets/
 ├── app.json
 └── package.json
