@@ -1,13 +1,14 @@
 # ExpoAppUsers
 
-Ejemplo educativo de una aplicación React Native con Expo, Firebase Authentication y React Navigation.
+Ejemplo educativo de una aplicación React Native con Expo, Firebase Authentication y React Navigation. El proyecto separa la autenticación en un servicio, comparte la sesión con un contexto global y muestra rutas distintas según exista o no un usuario autenticado.
 
 La aplicación permite:
 
 - Crear una cuenta con correo y contraseña.
 - Iniciar sesión.
 - Recuperar la contraseña por correo electrónico.
-- Mostrar una pantalla de inicio para usuarios autenticados.
+- Mostrar pantallas privadas para usuarios autenticados.
+- Consultar los datos básicos del usuario en una pantalla de perfil.
 - Cerrar sesión.
 
 ## Requisitos
@@ -29,8 +30,8 @@ npm --version
 Clona el repositorio y entra en la carpeta del proyecto:
 
 ```bash
-git clone git@github.com:nzgama/DAPMO.git
-cd DAPMO
+git clone git@github.com:nzgama/DAPMO.git ExpoAppUsers
+cd ExpoAppUsers
 ```
 
 Instala las dependencias:
@@ -50,7 +51,7 @@ La aplicación utiliza Firebase Authentication con el proveedor de correo y cont
 5. Activa **Email/Password**.
 6. Guarda los cambios.
 
-La configuración de Firebase se encuentra en [src/firebase/firebase.js](src/firebase/firebase.js). Si utilizas otro proyecto de Firebase, reemplaza los valores de `firebaseConfig` por los de tu aplicación web.
+La configuración de Firebase se encuentra en [src/firebase/firebase.js](src/firebase/firebase.js). El archivo [src/firebase/firebase.example.js](src/firebase/firebase.example.js) muestra el formato esperado de `firebaseConfig`. Si utilizas otro proyecto de Firebase, reemplaza los valores por los de tu aplicación web.
 
 > Las claves de configuración web de Firebase no sustituyen las reglas de seguridad del proyecto. No coloques contraseñas, tokens privados o claves de servidor en la aplicación.
 
@@ -85,12 +86,13 @@ npx expo start --tunnel
 
 ## Flujo de la aplicación
 
-1. `App.js` carga `src/navigation/AppNavigator`.
-2. `AppNavigator` escucha los cambios de sesión con `onAuthStateChanged`.
-3. Sin usuario autenticado se muestran `LoginScreen` y `RegisterScreen`.
-4. Después de iniciar sesión o registrarse, Firebase actualiza la sesión.
-5. La aplicación muestra `HomeScreen`.
-6. Al cerrar sesión, el navegador vuelve a mostrar Login y Registro.
+1. `App.js` envuelve la navegación con `AuthProvider`.
+2. `AuthProvider` escucha los cambios de sesión con `onAuthStateChanged` y expone `user` y `checkingSession`.
+3. `AppNavigator` consume la sesión con `useAuth`.
+4. Mientras Firebase revisa la sesión, se muestra una pantalla de carga.
+5. Sin usuario autenticado se muestran `LoginScreen` y `RegisterScreen`.
+6. Con usuario autenticado se muestran `HomeScreen` y `ProfileScreen`.
+7. Al cerrar sesión, Firebase actualiza el estado y la navegación vuelve al flujo de acceso.
 
 ## Estructura principal
 
@@ -99,7 +101,10 @@ ExpoAppUsers/
 ├── App.js
 ├── index.js
 ├── src/
+│   ├── context/
+│   │   └── AuthContext.js
 │   ├── firebase/
+│   │   ├── firebase.example.js
 │   │   └── firebase.js
 │   ├── navigation/
 │   ├── screens/
