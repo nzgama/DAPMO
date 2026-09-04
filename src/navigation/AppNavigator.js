@@ -1,27 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useContext } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase/firebase';
+import { AuthContext } from '../context/AuthContext';
 
 import AppStack from './AppStack';
 import AuthStack from './AuthStack';
 
 export default function AppNavigator() {
-    // Guardamos el usuario actual para decidir qué pantallas mostrar.
-    const [user, setUser] = useState(null);
-    const [checkingSession, setCheckingSession] = useState(true);
-
-    useEffect(() => {
-        // Firebase avisa cada vez que la sesión cambia.
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
-            setCheckingSession(false);
-        });
-
-        // Dejamos de escuchar cuando el componente se desmonta.
-        return unsubscribe;
-    }, []);
+    // El estado de sesión ahora vive en AuthContext, compartido por toda la app.
+    const { user, checkingSession } = useContext(AuthContext);
 
     // Mientras Firebase revisa la sesión mostramos una carga.
     if (checkingSession) {
