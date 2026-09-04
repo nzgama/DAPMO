@@ -1,14 +1,13 @@
-import { useContext } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 import AppStack from './AppStack';
 import AuthStack from './AuthStack';
 
 export default function AppNavigator() {
     // El estado de sesión ahora vive en AuthContext, compartido por toda la app.
-    const { user, checkingSession } = useContext(AuthContext);
+    const { user, checkingSession } = useAuth();
 
     // Mientras Firebase revisa la sesión mostramos una carga.
     if (checkingSession) {

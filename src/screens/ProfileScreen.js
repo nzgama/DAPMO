@@ -1,10 +1,9 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function ProfileScreen() {
     // currentUser contiene los datos del usuario que inició sesión en Firebase.
-    const { user } = useContext(AuthContext);
+    const { user, checkingSession } = useAuth();
     // Mostramos la primera letra del correo como avatar cuando no hay foto de perfil.
     const initial = user?.email?.charAt(0).toUpperCase() || 'U';
 

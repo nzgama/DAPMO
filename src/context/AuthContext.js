@@ -1,8 +1,12 @@
 import { onAuthStateChanged } from 'firebase/auth';
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { auth } from '../firebase/firebase';
 
 export const AuthContext = createContext();
+
+export const useAuth = () => {
+    return useContext(AuthContext);
+};
 
 // Centraliza el listener de sesión de Firebase para que toda la app comparta el mismo estado.
 export function AuthProvider({ children }) {
