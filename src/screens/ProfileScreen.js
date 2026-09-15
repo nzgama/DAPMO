@@ -1,11 +1,31 @@
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { getUser } from '../services/userService';
 
 export default function ProfileScreen() {
-    // currentUser contiene los datos del usuario que inició sesión en Firebase.
-    const { user, checkingSession } = useAuth();
-    // Mostramos la primera letra del correo como avatar cuando no hay foto de perfil.
+    // useAuth obtiene el usuario autenticado desde el contexto compartido.
+    const { user } = useAuth();
+    const [profile, setProfile] = useState(null);
+
+    // Usamos la primera letra del correo como avatar cuando no hay foto de perfil.
     const initial = user?.email?.charAt(0).toUpperCase() || 'U';
+
+    useEffect(() => {
+        const loadProfile = async () => {
+            // La pantalla puede renderizarse antes de que exista un usuario.
+            if (!user) {
+                return;
+            }
+
+            // El UID permite encontrar el documento correspondiente en Firestore.
+            const data = await getUser(user.uid);
+            setProfile(data);
+        };
+
+        // Cargamos los datos cada vez que cambia la sesión activa.
+        loadProfile();
+    }, [user]);
 
     return (
         <View style={styles.container}>
@@ -17,7 +37,12 @@ export default function ProfileScreen() {
 
             <View style={styles.infoBox}>
                 <Text style={styles.label}>Correo electrónico</Text>
-                <Text style={styles.value}>{user?.email || 'No disponible'}</Text>
+                <Text style={styles.value}>{profile?.email || 'No disponible'}</Text>
+
+                <View style={styles.divider} />
+
+                <Text style={styles.label}>Nombre</Text>
+                <Text style={styles.value}>{profile?.nombre || 'No disponible'}</Text>
 
                 <View style={styles.divider} />
 

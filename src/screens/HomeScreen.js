@@ -12,6 +12,10 @@ export default function HomeScreen({ navigation }) {
             <Pressable style={styles.profileButton} onPress={() => navigation.navigate('Profile')}>
                 <Text style={styles.profileButtonText}>Ver perfil</Text>
             </Pressable>
+            {/* La ruta Tasks muestra los pendientes del usuario autenticado. */}
+            <Pressable style={styles.tasksButton} onPress={() => navigation.navigate('Tasks')}>
+                <Text style={styles.tasksButtonText}>Ver mis tareas</Text>
+            </Pressable>
             {/* Al cerrar sesión, AppNavigator volverá a mostrar Login. */}
             <Pressable style={styles.button} onPress={logout}>
                 <Text style={styles.buttonText}>Cerrar sesión</Text>
@@ -29,6 +33,8 @@ const styles = StyleSheet.create({
     note: { color: '#64748b', fontSize: 13, lineHeight: 19, marginTop: 20, textAlign: 'center' },
     profileButton: { alignItems: 'center', backgroundColor: '#2563eb', borderRadius: 7, marginTop: 24, paddingHorizontal: 28, paddingVertical: 14 },
     profileButtonText: { color: '#fff', fontWeight: '800' },
+    tasksButton: { alignItems: 'center', borderColor: '#16a34a', borderRadius: 7, borderWidth: 1, marginTop: 14, paddingHorizontal: 28, paddingVertical: 14 },
+    tasksButtonText: { color: '#15803d', fontWeight: '800' },
     button: { borderColor: '#2563eb', borderRadius: 7, borderWidth: 1, marginTop: 28, paddingHorizontal: 28, paddingVertical: 14 },
     buttonText: { color: '#2563eb', fontWeight: '800' },
 });

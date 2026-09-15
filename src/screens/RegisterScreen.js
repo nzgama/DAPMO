@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { register } from '../services/authService';
+import { saveUser } from '../services/userService';
 
 const firebaseMessages = {
     'auth/email-already-in-use': 'Ese correo ya tiene una cuenta.',
@@ -9,26 +10,38 @@ const firebaseMessages = {
 };
 
 export default function RegisterScreen({ navigation }) {
-    // Guardamos los datos que escribe el alumno en el formulario.
+    // Cada estado representa el valor actual de un campo del formulario.
+    const [nombre, setNombre] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
+    // Convertimos los códigos técnicos de Firebase en mensajes para la persona usuaria.
+    const getErrorMessage = (error) => firebaseMessages[error.code] || 'No se pudo crear la cuenta.';
+
     const handleRegister = async () => {
-        // No intentamos registrar usuarios con campos vacíos.
-        if (!email.trim() || !password) {
-            Alert.alert('Faltan datos', 'Completa el correo y la contraseña.');
+        // Validamos localmente antes de hacer peticiones a Firebase.
+        if (!nombre.trim() || !email.trim() || !password) {
+            Alert.alert('Faltan datos', 'Completa el nombre, el correo y la contraseña.');
             return;
         }
 
         setLoading(true);
         try {
-            // Firebase crea la cuenta y también inicia la sesión.
-            await register(email, password);
+            // Primero creamos la cuenta; Firebase también inicia la sesión automáticamente.
+            const credential = await register(email, password);
+
+            // Usamos el UID de Auth como identificador del documento del perfil.
+            await saveUser(credential.user.uid, {
+                nombre: nombre.trim(),
+                email: credential.user.email,
+            });
+
         } catch (error) {
-            Alert.alert('Firebase Auth', firebaseMessages[error.code] || 'No se pudo crear la cuenta.');
+            Alert.alert('Firebase Auth', getErrorMessage(error));
         } finally {
+            // El formulario vuelve a estar disponible tanto si funciona como si falla.
             setLoading(false);
         }
     };
@@ -40,6 +53,15 @@ export default function RegisterScreen({ navigation }) {
             <Text style={styles.subtitle}>Regístrate con correo y contraseña.</Text>
 
             <View style={styles.form}>
+                <Text style={styles.label}>Nombre</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Tu nombre"
+                    placeholderTextColor="#94a3b8"
+                    autoCapitalize="words"
+                    value={nombre}
+                    onChangeText={setNombre}
+                />
                 <Text style={styles.label}>Correo electrónico</Text>
                 <TextInput
                     style={styles.input}

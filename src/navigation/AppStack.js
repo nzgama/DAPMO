@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import HomeScreen from '../screens/HomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import TasksScreen from '../screens/TasksScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,6 +17,10 @@ export default function AppStack() {
             <Stack.Screen
                 name="Profile"
                 component={ProfileScreen}
+            />
+            <Stack.Screen
+                name="Tasks"
+                component={TasksScreen}
             />
         </Stack.Navigator>
     );
