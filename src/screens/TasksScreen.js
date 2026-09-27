@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { getTasks, removeTask, saveTask, updateTaskStatus, updateTaskTitle } from '../services/taskService';
+import { createTask, deleteTask, getTasks, updateTask } from '../services/taskService';
 
 export default function TasksScreen() {
     // Obtenemos el usuario para leer y guardar solo sus tareas.
@@ -45,7 +45,10 @@ export default function TasksScreen() {
         setSaving(true);
         try {
             // Guardamos la tarea y volvemos a consultar para mostrar el documento creado.
-            await saveTask(user.uid, title);
+            await createTask({
+                title,
+                userId: user.uid,
+            });
             setTitle('');
             await loadTasks();
         } catch (error) {
@@ -57,7 +60,7 @@ export default function TasksScreen() {
 
     const handleToggleTask = async (task) => {
         try {
-            await updateTaskStatus(task.id, !task.completed);
+            await updateTask(task.id, { completed: !task.completed });
             setTasks((currentTasks) => currentTasks.map((currentTask) => (
                 currentTask.id === task.id
                     ? { ...currentTask, completed: !currentTask.completed }
@@ -91,7 +94,7 @@ export default function TasksScreen() {
         setSavingEdit(true);
         try {
             // Primero persistimos el cambio y después actualizamos la lista visible.
-            await updateTaskTitle(task.id, trimmedTitle);
+            await updateTask(task.id, { title: trimmedTitle });
             setTasks((currentTasks) => currentTasks.map((currentTask) => (
                 currentTask.id === task.id
                     ? { ...currentTask, title: trimmedTitle }
@@ -117,7 +120,7 @@ export default function TasksScreen() {
                     onPress: async () => {
                         try {
                             // El documento solo se elimina después de confirmar en el Alert.
-                            await removeTask(task.id);
+                            await deleteTask(task.id);
                             setTasks((currentTasks) => currentTasks.filter((currentTask) => currentTask.id !== task.id));
                         } catch (error) {
                             Alert.alert('Tareas', 'No se pudo eliminar la tarea.');

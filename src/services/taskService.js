@@ -13,13 +13,28 @@ import { db } from '../firebase/firebase';
 
 const tasksCollection = collection(db, 'tareas');
 
-// Guarda una tarea vinculada al usuario que la creó.
-export const saveTask = (userId, title) => addDoc(tasksCollection, {
-    completed: false,
-    createdAt: serverTimestamp(),
-    title: title.trim(),
-    userId,
-});
+// Validamos los datos antes de enviarlos a Firestore, aunque la pantalla ya los valide.
+const normalizeTitle = (title) => {
+    const normalizedTitle = title.trim();
+
+    if (!normalizedTitle) {
+        throw new Error('El título de la tarea no puede estar vacío.');
+    }
+
+    return normalizedTitle;
+};
+
+// CREATE: recibe los datos de una tarea y devuelve el ID generado por Firestore.
+export const createTask = async (task) => {
+    const reference = await addDoc(tasksCollection, {
+        ...task,
+        completed: false,
+        createdAt: serverTimestamp(),
+        title: normalizeTitle(task.title),
+    });
+
+    return reference.id;
+};
 
 // Obtiene únicamente las tareas del usuario autenticado.
 export const getTasks = async (userId) => {
@@ -36,15 +51,14 @@ export const getTasks = async (userId) => {
         });
 };
 
-// Cambia el estado completado de una tarea.
-export const updateTaskStatus = (taskId, completed) => updateDoc(doc(db, 'tareas', taskId), {
-    completed,
-});
+// UPDATE: modifica únicamente los campos enviados, sin reemplazar todo el documento.
+export const updateTask = (taskId, data) => {
+    const dataToSave = data.title === undefined
+        ? data
+        : { ...data, title: normalizeTitle(data.title) };
 
-// updateDoc modifica únicamente los campos indicados del documento existente.
-export const updateTaskTitle = (taskId, title) => updateDoc(doc(db, 'tareas', taskId), {
-    title: title.trim(),
-});
+    return updateDoc(doc(db, 'tareas', taskId), dataToSave);
+};
 
-// Elimina una tarea por su identificador de Firestore.
-export const removeTask = (taskId) => deleteDoc(doc(db, 'tareas', taskId));
+// DELETE: elimina el documento identificado por taskId.
+export const deleteTask = (taskId) => deleteDoc(doc(db, 'tareas', taskId));
