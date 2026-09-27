@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { getTasks, removeTask, saveTask, updateTaskStatus } from '../services/taskService';
+import { getTasks, removeTask, saveTask, updateTaskStatus, updateTaskTitle } from '../services/taskService';
 
 export default function TasksScreen() {
     // Obtenemos el usuario para leer y guardar solo sus tareas.
@@ -10,6 +10,10 @@ export default function TasksScreen() {
     const [title, setTitle] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    // Guardamos qué tarea se está editando para cambiar solo esa fila a un TextInput.
+    const [editingTaskId, setEditingTaskId] = useState(null);
+    const [editingTitle, setEditingTitle] = useState('');
+    const [savingEdit, setSavingEdit] = useState(false);
 
     const loadTasks = async () => {
         if (!user) {
@@ -64,13 +68,64 @@ export default function TasksScreen() {
         }
     };
 
-    const handleRemoveTask = async (taskId) => {
-        try {
-            await removeTask(taskId);
-            setTasks((currentTasks) => currentTasks.filter((task) => task.id !== taskId));
-        } catch (error) {
-            Alert.alert('Tareas', 'No se pudo eliminar la tarea.');
+    const handleStartEditing = (task) => {
+        // Copiamos el título actual al formulario para que el alumno pueda modificarlo.
+        setEditingTaskId(task.id);
+        setEditingTitle(task.title);
+    };
+
+    const handleCancelEditing = () => {
+        // Al cancelar, limpiamos el estado de edición sin tocar Firestore.
+        setEditingTaskId(null);
+        setEditingTitle('');
+    };
+
+    const handleSaveEditing = async (task) => {
+        const trimmedTitle = editingTitle.trim();
+
+        // Un título vacío no es válido, por eso no hacemos ninguna petición.
+        if (!trimmedTitle) {
+            return;
         }
+
+        setSavingEdit(true);
+        try {
+            // Primero persistimos el cambio y después actualizamos la lista visible.
+            await updateTaskTitle(task.id, trimmedTitle);
+            setTasks((currentTasks) => currentTasks.map((currentTask) => (
+                currentTask.id === task.id
+                    ? { ...currentTask, title: trimmedTitle }
+                    : currentTask
+            )));
+            handleCancelEditing();
+        } catch (error) {
+            Alert.alert('Tareas', 'No se pudo actualizar el título.');
+        } finally {
+            setSavingEdit(false);
+        }
+    };
+
+    const handleRemoveTask = (task) => {
+        Alert.alert(
+            'Eliminar tarea',
+            `¿Quieres eliminar "${task.title}"?`,
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Eliminar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            // El documento solo se elimina después de confirmar en el Alert.
+                            await removeTask(task.id);
+                            setTasks((currentTasks) => currentTasks.filter((currentTask) => currentTask.id !== task.id));
+                        } catch (error) {
+                            Alert.alert('Tareas', 'No se pudo eliminar la tarea.');
+                        }
+                    },
+                },
+            ],
+        );
     };
 
     const renderTask = ({ item }) => (
@@ -83,10 +138,35 @@ export default function TasksScreen() {
             >
                 {item.completed && <Text style={styles.checkMark}>✓</Text>}
             </Pressable>
-            <Text style={[styles.taskTitle, item.completed && styles.taskTitleCompleted]}>{item.title}</Text>
-            <Pressable onPress={() => handleRemoveTask(item.id)} style={styles.deleteButton}>
-                <Text style={styles.deleteText}>Eliminar</Text>
-            </Pressable>
+            {/* Mostramos un formulario solo para la tarea que el usuario eligió editar. */}
+            {editingTaskId === item.id ? (
+                <>
+                    <TextInput
+                        autoFocus
+                        style={styles.editInput}
+                        value={editingTitle}
+                        onChangeText={setEditingTitle}
+                        onSubmitEditing={() => handleSaveEditing(item)}
+                        returnKeyType="done"
+                    />
+                    <Pressable onPress={() => handleSaveEditing(item)} disabled={savingEdit} style={styles.editButton}>
+                        <Text style={styles.editText}>Guardar</Text>
+                    </Pressable>
+                    <Pressable onPress={handleCancelEditing} disabled={savingEdit} style={styles.deleteButton}>
+                        <Text style={styles.deleteText}>Cancelar</Text>
+                    </Pressable>
+                </>
+            ) : (
+                <>
+                    <Text style={[styles.taskTitle, item.completed && styles.taskTitleCompleted]}>{item.title}</Text>
+                    <Pressable onPress={() => handleStartEditing(item)} style={styles.editButton}>
+                        <Text style={styles.editText}>Editar</Text>
+                    </Pressable>
+                    <Pressable onPress={() => handleRemoveTask(item)} style={styles.deleteButton}>
+                        <Text style={styles.deleteText}>Eliminar</Text>
+                    </Pressable>
+                </>
+            )}
         </View>
     );
 
@@ -146,6 +226,9 @@ const styles = StyleSheet.create({
     checkMark: { color: '#fff', fontWeight: '800' },
     taskTitle: { color: '#0f172a', flex: 1, fontSize: 15 },
     taskTitleCompleted: { color: '#94a3b8', textDecorationLine: 'line-through' },
+    editInput: { borderColor: '#2563eb', borderRadius: 6, borderWidth: 1, color: '#0f172a', flex: 1, marginRight: 8, padding: 8 },
+    editButton: { marginLeft: 8, paddingVertical: 5 },
+    editText: { color: '#2563eb', fontSize: 12, fontWeight: '700' },
     deleteButton: { marginLeft: 10, paddingVertical: 5 },
     deleteText: { color: '#dc2626', fontSize: 12, fontWeight: '700' },
 });

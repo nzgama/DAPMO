@@ -41,5 +41,10 @@ export const updateTaskStatus = (taskId, completed) => updateDoc(doc(db, 'tareas
     completed,
 });
 
+// updateDoc modifica únicamente los campos indicados del documento existente.
+export const updateTaskTitle = (taskId, title) => updateDoc(doc(db, 'tareas', taskId), {
+    title: title.trim(),
+});
+
 // Elimina una tarea por su identificador de Firestore.
 export const removeTask = (taskId) => deleteDoc(doc(db, 'tareas', taskId));
